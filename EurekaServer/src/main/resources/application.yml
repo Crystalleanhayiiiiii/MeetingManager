@@ -1,0 +1,18 @@
+server:
+  address: 0.0.0.0
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: 172.16.0.37
+    prefer-ip-address: true  # Ưu tiên sử dụng IP khi client kết nối
+
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://172.16.0.37:8761/eureka  # SỬA: Dùng IP trực tiếp

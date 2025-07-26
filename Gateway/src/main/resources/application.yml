@@ -1,0 +1,38 @@
+server:
+  port: 9001  # Cổng chạy gateway
+
+spring:
+  application:
+    name: GATEWAY  # Tên service đăng ký lên Eureka
+  cloud:
+    gateway:
+      routes:
+        # Route cho ROOMSERVICE
+        - id: room-service
+          uri: lb://ROOMSERVICE # Tên service trong Eureka
+          predicates:
+            - Path=/rooms/**
+        - id: meeting-service
+          uri: lb://MEETINGSERVICE
+          predicates:
+            - Path=/api/meetings/**
+eureka:
+  client:
+    service-url:
+      defaultZone: http://172.16.0.37:8761/eureka/  # Địa chỉ Eureka Server
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+management:
+  endpoint:
+    gateway:
+      enabled: true  # Bật gateway actuator
+  endpoints:
+    web:
+      exposure:
+        include: gateway,health,info  # Expose các endpoint cần thiết
