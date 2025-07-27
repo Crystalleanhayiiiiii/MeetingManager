@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Gửi Thông báo</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+        .form-section { flex: 1; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        button { padding: 8px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        textarea, input { width: 100%; padding: 8px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Test Gửi Thông báo</h1>
+    
+    <div class="container">
+        <div class="form-section">
+            <h2>Tạo Thông báo</h2>
+            <input type="text" id="userId" placeholder="User ID" value="user123">
+            <input type="text" id="type" placeholder="Loại thông báo" value="MEETING_CREATED">
+            <textarea id="content" placeholder="Nội dung">Bạn có cuộc họp mới</textarea>
+            <input type="text" id="meetingId" placeholder="Meeting ID" value="meet001">
+            <button onclick="createNotification()">Gửi Thông báo</button>
+        </div>
+        
+        <div class="form-section">
+            <h2>Gửi Email</h2>
+            <input type="email" id="email" placeholder="Email" value="test@example.com">
+            <input type="text" id="subject" placeholder="Tiêu đề" value="Thông báo quan trọng">
+            <textarea id="emailContent" placeholder="Nội dung email">Đây là nội dung email thông báo</textarea>
+            <button onclick="sendEmail()">Gửi Email</button>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h2>Danh sách Thông báo</h2>
+        <input type="text" id="searchUserId" placeholder="Nhập User ID" value="user123">
+        <button onclick="getNotifications()">Lấy Thông báo</button>
+        <div id="notificationList" style="margin-top: 10px;"></div>
+    </div>
+
+    <script>
+        function createNotification() {
+            const data = {
+                userId: document.getElementById('userId').value,
+                type: document.getElementById('type').value,
+                content: document.getElementById('content').value,
+                meetingId: document.getElementById('meetingId').value
+            };
+            
+            axios.post('/api/notifications', data)
+                .then(response => {
+                    alert('Tạo thông báo thành công!');
+                    getNotifications();
+                })
+                .catch(error => {
+                    alert('Lỗi: ' + error.response.data.message);
+                });
+        }
+        
+        function sendEmail() {
+            const data = {
+                to: document.getElementById('email').value,
+                subject: document.getElementById('subject').value,
+                content: document.getElementById('emailContent').value
+            };
+            
+            axios.post('/api/notifications/send-email', data)
+                .then(response => {
+                    alert('Email đã được gửi!');
+                })
+                .catch(error => {
+                    alert('Lỗi gửi email: ' + error.response.data.message);
+                });
+        }
+        
+        function getNotifications() {
+            const userId = document.getElementById('searchUserId').value;
+            
+            axios.get(`/api/notifications/user/${userId}`)
+                .then(response => {
+                    const notifications = response.data;
+                    const listDiv = document.getElementById('notificationList');
+                    listDiv.innerHTML = '';
+                    
+                    if (notifications.length === 0) {
+                        listDiv.innerHTML = '<p>Không có thông báo nào</p>';
+                        return;
+                    }
+                    
+                    const ul = document.createElement('ul');
+                    notifications.forEach(noti => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <strong>${noti.type}</strong> - ${noti.content}
+                            <small>${new Date(noti.sentAt).toLocaleString()}</small>
+                            <button onclick="markAsRead(${noti.id})">Đánh dấu đã đọc</button>
+                        `;
+                        ul.appendChild(li);
+                    });
+                    
+                    listDiv.appendChild(ul);
+                })
+                .catch(error => {
+                    alert('Lỗi: ' + error.response.data.message);
+                });
+        }
+        
+        function markAsRead(notificationId) {
+            axios.put(`/api/notifications/${notificationId}/mark-as-read`)
+                .then(() => {
+                    alert('Đã đánh dấu đã đọc');
+                    getNotifications();
+                })
+                .catch(error => {
+                    alert('Lỗi: ' + error.response.data.message);
+                });
+        }
+    </script>
+</body>
+</html>
