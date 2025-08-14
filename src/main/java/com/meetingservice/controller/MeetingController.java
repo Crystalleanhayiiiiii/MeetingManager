@@ -85,6 +85,15 @@ public class MeetingController {
         return ResponseEntity.ok(meetingService.update(id, organizerId, req));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Meeting> detail(@PathVariable Long id) {
+        Meeting meeting = meetingService.getMeetingById(id);
+        if (meeting == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(meeting);
+    }
+
     @PostMapping("/{id}/cancel")
     public ResponseEntity<Void> cancel(@PathVariable Long id,
             @RequestParam Long organizerId,
@@ -147,5 +156,10 @@ public class MeetingController {
     @GetMapping("/user/{userId}/all")
     public ResponseEntity<List<Meeting>> all(@PathVariable Long userId) {
         return ResponseEntity.ok(meetingService.getAllByUser(userId));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Meeting>> getall() {
+        return ResponseEntity.ok(meetingService.getAll());
     }
 }

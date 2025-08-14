@@ -3,5 +3,6 @@ package com.meetingservice.event;
 public enum MeetingEventType {
     CREATED,
     UPDATED,
-    CANCELLED
+    CANCELLED,
+    ADDED_PARTICIPANT
 }

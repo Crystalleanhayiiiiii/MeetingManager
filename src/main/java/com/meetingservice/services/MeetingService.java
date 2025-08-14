@@ -107,9 +107,9 @@ public class MeetingService {
         // organizer là participant
         MeetingParticipant organizer = new MeetingParticipant();
         organizer.setMeeting(m);
-        organizer.setUserId(r.getOrganizerId());
-        organizer.setRole(ParticipantRole.ORGANIZER);
-        participantRepo.save(organizer);
+        // organizer.setUserId(r.getOrganizerId());
+        // organizer.setRole(ParticipantRole.ORGANIZER);
+        // participantRepo.save(organizer);
 
         publishEvent(MeetingEventType.CREATED, m, null);
         return m;
@@ -158,12 +158,12 @@ public class MeetingService {
                 MeetingParticipant p = new MeetingParticipant();
                 p.setMeeting(m);
                 p.setUserId(uid);
-                p.setRole(ParticipantRole.ATTENDEE);
+                // p.setRole(ParticipantRole.ATTENDEE);
                 participantRepo.save(p);
                 added.add(uid);
             }
         }
-        publishEvent(MeetingEventType.UPDATED, m, null);
+        publishEvent(MeetingEventType.ADDED_PARTICIPANT, m, null);
         return added;
     }
 
@@ -237,6 +237,14 @@ public class MeetingService {
 
     public List<Meeting> getAllByUser(Long userId) {
         return meetingRepo.findAllMeetingForUser(userId);
+    }
+
+    public List<Meeting> getAll() {
+        return meetingRepo.findAll();
+    }
+
+    public Meeting getMeetingById(Long id) {
+        return meetingRepo.findById(id).orElse(null);
     }
 
 }

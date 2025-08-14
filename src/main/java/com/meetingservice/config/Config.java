@@ -14,6 +14,7 @@ public class Config {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://192.168.1.167:3000"); // ✅ React client
+        config.addAllowedOrigin("http://localhost:5173/"); // ✅ React client
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 

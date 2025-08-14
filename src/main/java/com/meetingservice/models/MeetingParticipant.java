@@ -1,7 +1,9 @@
 package com.meetingservice.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.meetingservice.enums.ParticipantRole;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -22,11 +24,13 @@ public class MeetingParticipant {
 
     private Long userId;
 
+    @Column(nullable = true, columnDefinition = "varchar(20) default 'ATTENDEE'")
     @Enumerated(EnumType.STRING)
     private ParticipantRole role; // ORGANIZER / ATTENDEE
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "meeting_id")
+    @JsonIgnore
     private Meeting meeting;
 
     public static Object builder() {
