@@ -1,5 +1,6 @@
 package com.example.user.service;
 
+import com.example.user.DTO.UserDetailsResponse;
 import com.example.user.DTO.UserInfoDTO;
 import com.example.user.entity.*;
 import com.example.user.repository.UserAccountRepository;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,13 +27,13 @@ import org.springframework.web.client.RestTemplate;
 public class UserService {
 
     @Autowired
-    private UserAccountRepository accountRepository;
+    private UserAccountRepository userAccountRepository;
 
     @Autowired
     private UserRepository usersRepository;
     
     public UserAccount getAccountByUsername(String username) {
-        UserAccount account = accountRepository.findByUsername(username);
+        UserAccount account = userAccountRepository.findByUsername(username);
         if (account == null) {
             throw new RuntimeException("Account not found for username: " + username);
         }
@@ -46,7 +48,7 @@ public class UserService {
         return usersRepository.findById(id).orElse(null);  // Trả về null nếu không tìm thấy
     }
     public UserInfoDTO getUserInfoAndAccountByAccountId(Long accountId) {
-        UserAccount userAccount = accountRepository.findByAccountId(accountId);  // Tìm tài khoản bằng username
+        UserAccount userAccount = userAccountRepository.findByAccountId(accountId);  // Tìm tài khoản bằng username
 
         if (userAccount == null) {
             throw new RuntimeException("Account not found");
@@ -70,5 +72,26 @@ public class UserService {
             userAccount.getRole()
         );
     }
+    public List<UserDetailsResponse> getAllActiveUsers() {
+        List<Users> activeUsers = usersRepository.findByStatus(Users.Status.ACTIVE);
+        List<UserAccount> activeAccounts = userAccountRepository.findByStatus(UserAccount.Status.ACTIVE);
+
+        List<UserDetailsResponse> userDetailsList = new ArrayList<>();
+
+        for (Users user : activeUsers) {
+            Optional<UserAccount> userAccountOpt = activeAccounts.stream()
+                    .filter(account -> account.getUser().getUserId().equals(user.getUserId()))
+                    .findFirst();
+
+            if (userAccountOpt.isPresent()) {
+                UserAccount userAccount = userAccountOpt.get();
+                UserDetailsResponse response = new UserDetailsResponse(user, userAccount);
+                userDetailsList.add(response);
+            }
+        }
+
+        return userDetailsList;
+    }
+    
 
 }

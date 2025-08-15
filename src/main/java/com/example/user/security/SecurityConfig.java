@@ -39,9 +39,11 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())  // Tắt CSRF
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/avatar/**").permitAll()
-                .anyRequest().authenticated()
+//                .requestMatchers("/api/auth/login").permitAll()
+//                .requestMatchers("/avatar/**").permitAll()
+//                .requestMatchers("/users/**").permitAll()
+                .anyRequest().permitAll()
+                //.anyRequest().authenticated()
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenUtil), UsernamePasswordAuthenticationFilter.class); // ✅ sửa chỗ này
 

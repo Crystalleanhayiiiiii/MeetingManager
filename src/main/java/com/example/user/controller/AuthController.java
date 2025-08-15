@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/users")
 public class AuthController {
 	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
@@ -26,7 +26,7 @@ public class AuthController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-    @PostMapping("/login")
+    @PostMapping("/api/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
     	logger.info("Login attempt with username: {}", request.getUsername());
         UserAccount user = userAccountRepository.findByUsername(request.getUsername());

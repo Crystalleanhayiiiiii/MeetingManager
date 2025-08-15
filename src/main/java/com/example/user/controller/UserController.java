@@ -1,5 +1,6 @@
 package com.example.user.controller;
 
+import com.example.user.DTO.UserDetailsResponse;
 import com.example.user.DTO.UserInfoDTO;
 import com.example.user.entity.*;
 import com.example.user.security.JwtTokenUtil;
@@ -8,6 +9,7 @@ import com.example.user.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -28,10 +30,15 @@ public class UserController {
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;
 
-	@GetMapping("/{accountID}")
+	@GetMapping("/account/{accountID}")
 	public ResponseEntity<UserInfoDTO> getInfoUserAndUserAccount(@PathVariable Long accountID) {
 		UserInfoDTO userInfoDTO = userService.getUserInfoAndAccountByAccountId(accountID);
 		return ResponseEntity.ok(userInfoDTO);
+	}
+	@GetMapping("/userDetail/{id}")
+	public ResponseEntity<Users> getUserByID(@PathVariable Long id) {
+		Users user = userService.getUserById(id);
+		return ResponseEntity.ok(user);
 	}
 
 	// API lấy thông tin người dùng
@@ -69,4 +76,18 @@ public class UserController {
 			return ResponseEntity.status(400).body("Lỗi khi giải mã token: " + e.getMessage());
 		}
 	}
+	@GetMapping("/active")
+    public ResponseEntity<List<UserDetailsResponse>> getAllActiveUsers() {
+        try {
+            List<UserDetailsResponse> userDetailsList = userService.getAllActiveUsers();
+            
+            if (userDetailsList.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            return ResponseEntity.ok(userDetailsList);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
