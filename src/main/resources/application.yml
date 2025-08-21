@@ -49,13 +49,13 @@
 #         spring.json.value.default.type: com.meetingservice.models.Log  # Đặt kiểu mặc định nếu cần thiết
 
 server:
-  port: 8082  # Cổng của ứng dụng
+  port: 8089  # Cổng của ứng dụng
 eureka:
   client:
-    register-with-eureka: true
-    fetch-registry: true
+    register-with-eureka: false
+    fetch-registry: false
     service-url:
-      defaultZone: http://192.168.1.167:8761/eureka/
+      defaultZone: http://172.16.1.227:8761/eureka/
   instance:
     prefer-ip-address: true  # THÊM DÒNG NÀY
     instance-id: ${spring.cloud.client.ip-address}:${server.port}  # TÙY CHỌN

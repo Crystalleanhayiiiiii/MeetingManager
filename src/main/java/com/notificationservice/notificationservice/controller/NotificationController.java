@@ -1,11 +1,10 @@
 package com.notificationservice.notificationservice.controller;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.data.domain.Sort;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,5 +41,41 @@ public class NotificationController {
         notif.setReadAt(java.time.LocalDateTime.now());
         repo.save(notif);
         return ResponseEntity.ok().build();
+    }
+
+    // Tất cả thông báo của user
+    @GetMapping("/user1/{userId}")
+    public ResponseEntity<List<Notification>> listAll(@PathVariable Long userId) {
+        return ResponseEntity.ok(repo.findByUserIdOrderByCreatedAtDesc(userId));
+    }
+
+    // Chưa đọc của user
+    @GetMapping("/user1/{userId}/unread")
+    public ResponseEntity<List<Notification>> listUnread(@PathVariable Long userId) {
+        return ResponseEntity.ok(repo.findByUserIdAndStatusNotOrderByCreatedAtDesc(userId, "READ"));
+    }
+
+    // Đếm chưa đọc
+    @GetMapping("/user1/{userId}/unread/count")
+    public ResponseEntity<Map<String, Object>> unreadCount(@PathVariable Long userId) {
+        long count = repo.countByUserIdAndStatusNot(userId, "READ");
+        return ResponseEntity.ok(Map.of("userId", userId, "unread", count));
+    }
+
+    // Đánh dấu tất cả thông báo của người dùng là đã đọc
+    @PostMapping("/user/{userId}/read-all")
+    public ResponseEntity<Map<String, Object>> markAllRead(@PathVariable Long userId) {
+        List<Notification> list = repo.findByUserIdAndStatusNotOrderByCreatedAtDesc(userId, "READ");
+        int changed = 0;
+        LocalDateTime now = LocalDateTime.now();
+        for (Notification n : list) {
+            n.setStatus("READ");
+            n.setReadAt(now);
+            changed++;
+        }
+        if (changed > 0) {
+            repo.saveAll(list);
+        }
+        return ResponseEntity.ok(Map.of("userId", userId, "changed", changed));
     }
 }

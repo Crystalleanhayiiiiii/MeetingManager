@@ -1,5 +1,5 @@
 package com.notificationservice.notificationservice.event;
 
 public enum MeetingEventType {
-    CREATED, UPDATED, CANCELLED
+    CREATED, UPDATED, CANCELLED, ADDED_PARTICIPANT
 }

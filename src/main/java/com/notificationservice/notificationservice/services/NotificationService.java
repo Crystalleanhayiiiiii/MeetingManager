@@ -34,10 +34,13 @@ public class NotificationService {
         String title = titleOf(ev);
         String message = messageOf(ev);
 
+        // Gửi thông báo cho từng người (người được mời hoặc người tổ chức)
         for (Long uid : recipients) {
             if (uid == null)
                 continue;
-            // idempotent theo user+eventId (nếu header có)
+
+            // idempotent: tránh gửi lại thông báo cho cùng một sự kiện (nếu header có
+            // eventId)
             if (eventId != null && repo.existsByUserIdAndEventId(uid, eventId))
                 continue;
 
@@ -66,6 +69,8 @@ public class NotificationService {
                 return "Cuộc họp cập nhật";
             case CANCELLED:
                 return "Cuộc họp bị hủy";
+            case ADDED_PARTICIPANT:
+                return "Bạn được mời tham gia cuộc họp";
             default:
                 return "Thông báo cuộc họp";
         }
@@ -80,6 +85,8 @@ public class NotificationService {
                 return "Cuộc họp \"" + name + "\" vừa được cập nhật.";
             case CANCELLED:
                 return "Cuộc họp \"" + name + "\" đã bị hủy.";
+            case ADDED_PARTICIPANT:
+                return "Bạn đã được mời tham gia cuộc họp \"" + name + "\".";
             default:
                 return "Cuộc họp \"" + name + "\" có thay đổi.";
         }
