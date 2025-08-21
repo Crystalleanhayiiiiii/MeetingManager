@@ -37,7 +37,8 @@ public class Meeting {
     private String title;
     @Column(length = 2000)
     private String description;
-
+    @Column(length = 2000)
+    private String notes;
     private Long organizerId;
 
     @Enumerated(EnumType.STRING)
@@ -67,6 +68,14 @@ public class Meeting {
     private String cancelReason;
 
     public Meeting() {
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Long getId() {

@@ -73,16 +73,25 @@ public class MeetingController {
         this.meetingService = meetingService;
     }
 
-    @PostMapping
+    // @PostMapping
+    // public ResponseEntity<Meeting> create(@RequestBody CreateMeetingRequest req)
+    // {
+    // return ResponseEntity.ok(meetingService.create(req));
+    // }
+    @PostMapping("/createMeeting")
     public ResponseEntity<Meeting> create(@RequestBody CreateMeetingRequest req) {
         return ResponseEntity.ok(meetingService.create(req));
     }
 
+    // @PutMapping("/{id}")
+    // public ResponseEntity<Meeting> update(@PathVariable Long id,
+    // @RequestBody UpdateMeetingRequest req) {
+    // return ResponseEntity.ok(meetingService.update(id, req));
+    // }
     @PutMapping("/{id}")
     public ResponseEntity<Meeting> update(@PathVariable Long id,
-            @RequestParam Long organizerId,
             @RequestBody UpdateMeetingRequest req) {
-        return ResponseEntity.ok(meetingService.update(id, organizerId, req));
+        return ResponseEntity.ok(meetingService.update(id, req));
     }
 
     @GetMapping("/{id}")
@@ -96,9 +105,8 @@ public class MeetingController {
 
     @PostMapping("/{id}/cancel")
     public ResponseEntity<Void> cancel(@PathVariable Long id,
-            @RequestParam Long organizerId,
             @RequestBody(required = false) CancelMeetingRequest req) {
-        meetingService.cancel(id, organizerId, req == null ? null : req.getReason());
+        meetingService.cancel(id, req == null ? null : req.getReason());
         return ResponseEntity.ok().build();
     }
 

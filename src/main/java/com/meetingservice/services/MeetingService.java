@@ -26,13 +26,15 @@ public class MeetingService {
     private final MeetingRepository meetingRepo;
     private final MeetingParticipantRepository participantRepo;
     private final MeetingProducerService eventProducer;
+    private final RoomBookingPublisher bookingPublisher;
 
     public MeetingService(MeetingRepository meetingRepo,
             MeetingParticipantRepository participantRepo,
-            MeetingProducerService eventProducer) {
+            MeetingProducerService eventProducer, RoomBookingPublisher bookingPublisher) {
         this.meetingRepo = meetingRepo;
         this.participantRepo = participantRepo;
         this.eventProducer = eventProducer;
+        this.bookingPublisher = bookingPublisher;
     }
 
     private void validateCreate(CreateMeetingRequest r) {
@@ -86,12 +88,44 @@ public class MeetingService {
         }
     }
 
+    // @Transactional
+    // public Meeting create(CreateMeetingRequest r) {
+    // validateCreate(r);
+    // Meeting m = new Meeting();
+    // m.setTitle(r.getTitle());
+    // m.setDescription(r.getDescription());
+    // m.setOrganizerId(r.getOrganizerId());
+    // m.setType(r.getType());
+    // m.setStartTime(r.getStartTime());
+    // m.setEndTime(r.getEndTime());
+    // m.setOnlinePlatform(r.getOnlinePlatform());
+    // m.setOnlineLink(r.getOnlineLink());
+    // m.setRoomId(r.getRoomId());
+    // m.setDeviceIds(r.getDeviceIds() == null ? new HashSet<>() : new
+    // HashSet<>(r.getDeviceIds()));
+    // m.setStatus(r.getType() == MeetingType.OFFLINE ?
+    // MeetingStatus.PENDING_APPROVAL : MeetingStatus.UPCOMING);
+
+    // meetingRepo.save(m);
+
+    // // organizer là participant
+    // MeetingParticipant organizer = new MeetingParticipant();
+    // organizer.setMeeting(m);
+    // // organizer.setUserId(r.getOrganizerId());
+    // // organizer.setRole(ParticipantRole.ORGANIZER);
+    // // participantRepo.save(organizer);
+
+    // publishEvent(MeetingEventType.CREATED, m, null);
+    // return m;
+    // }
+
     @Transactional
     public Meeting create(CreateMeetingRequest r) {
         validateCreate(r);
         Meeting m = new Meeting();
         m.setTitle(r.getTitle());
         m.setDescription(r.getDescription());
+        m.setNotes(r.getNotes());
         m.setOrganizerId(r.getOrganizerId());
         m.setType(r.getType());
         m.setStartTime(r.getStartTime());
@@ -99,7 +133,8 @@ public class MeetingService {
         m.setOnlinePlatform(r.getOnlinePlatform());
         m.setOnlineLink(r.getOnlineLink());
         m.setRoomId(r.getRoomId());
-        m.setDeviceIds(r.getDeviceIds() == null ? new HashSet<>() : new HashSet<>(r.getDeviceIds()));
+        // m.setDeviceIds(r.getDeviceIds() == null ? new HashSet<>() : new
+        // HashSet<>(r.getDeviceIds()));
         m.setStatus(r.getType() == MeetingType.OFFLINE ? MeetingStatus.PENDING_APPROVAL : MeetingStatus.UPCOMING);
 
         meetingRepo.save(m);
@@ -111,14 +146,28 @@ public class MeetingService {
         // organizer.setRole(ParticipantRole.ORGANIZER);
         // participantRepo.save(organizer);
 
-        publishEvent(MeetingEventType.CREATED, m, null);
+        // publishEvent(MeetingEventType.CREATED, m, null);
+
+        // Nếu OFFLINE & có roomId ⇒ gửi event đặt phòng
+        if (m.getType() == MeetingType.OFFLINE && m.getRoomId() != null) {
+            Map<String, Object> payload = Map.of(
+                    "meetingId", m.getId(),
+                    "roomId", m.getRoomId(),
+                    "startTime", m.getStartTime(), // ISO nếu là String; nếu là Instant/LocalDateTime vẫn ok //
+                                                   // (JsonSerializer)
+                    "endTime", m.getEndTime(),
+                    "organizerId", m.getOrganizerId(),
+                    "title", m.getTitle(),
+                    "notes", m.getNotes());
+            bookingPublisher.publishBookingRequest(m.getRoomId(), payload);
+        }
         return m;
     }
 
     @Transactional
-    public Meeting update(Long meetingId, Long requesterId, UpdateMeetingRequest r) {
+    public Meeting update(Long meetingId, UpdateMeetingRequest r) {
         Meeting m = requireMeeting(meetingId);
-        ensureOrganizer(m, requesterId);
+        // ensureOrganizer(m, requesterId);
         if (m.getStatus() == MeetingStatus.CANCELLED)
             throw new IllegalStateException("meeting is cancelled");
         if (m.getStatus() == MeetingStatus.COMPLETED)
@@ -130,18 +179,54 @@ public class MeetingService {
         return m;
     }
 
+    // @Transactional
+    // public void cancel(Long meetingId, String reason) {
+    // Meeting m = requireMeeting(meetingId);
+    // // ensureOrganizer(m, organizerId);
+    // if (m.getStatus() == MeetingStatus.CANCELLED)
+    // return;
+
+    // m.setStatus(MeetingStatus.CANCELLED);
+    // m.setCancelReason(reason);
+    // meetingRepo.save(m);
+
+    // publishEvent(MeetingEventType.CANCELLED, m, reason);
+    // }
+
+    // @Transactional
+    // public List<Long> addParticipants(Long meetingId, Long organizerId,
+    // List<Long> userIds) {
+    // Meeting m = requireMeeting(meetingId);
+    // ensureOrganizer(m, organizerId);
+    // List<Long> added = new ArrayList<>();
+    // if (userIds != null) {
+    // for (Long uid : new HashSet<>(userIds)) {
+    // if (uid == null)
+    // continue;
+    // if (participantRepo.existsByMeetingIdAndUserId(meetingId, uid))
+    // continue;
+    // MeetingParticipant p = new MeetingParticipant();
+    // p.setMeeting(m);
+    // p.setUserId(uid);
+    // // p.setRole(ParticipantRole.ATTENDEE);
+    // participantRepo.save(p);
+    // added.add(uid);
+    // }
+    // }
+    // publishEvent(MeetingEventType.ADDED_PARTICIPANT, m, null);
+    // return added;
+    // }
     @Transactional
-    public void cancel(Long meetingId, Long organizerId, String reason) {
-        Meeting m = requireMeeting(meetingId);
-        ensureOrganizer(m, organizerId);
+    public void cancel(Long meetingId, String reason) {
+        Meeting m = requireMeeting(meetingId); // Load the meeting by ID.
         if (m.getStatus() == MeetingStatus.CANCELLED)
-            return;
+            return; // If the meeting is already canceled, do nothing.
 
-        m.setStatus(MeetingStatus.CANCELLED);
-        m.setCancelReason(reason);
-        meetingRepo.save(m);
+        m.setStatus(MeetingStatus.CANCELLED); // Change the meeting status to CANCELLED.
+        m.setCancelReason(reason); // Set the cancel reason.
+        meetingRepo.save(m); // Save the updated meeting back to the database.
 
-        publishEvent(MeetingEventType.CANCELLED, m, reason);
+        publishEvent(MeetingEventType.CANCELLED, m, reason); // Publish the cancellation event.
     }
 
     @Transactional
@@ -158,11 +243,11 @@ public class MeetingService {
                 MeetingParticipant p = new MeetingParticipant();
                 p.setMeeting(m);
                 p.setUserId(uid);
-                // p.setRole(ParticipantRole.ATTENDEE);
                 participantRepo.save(p);
                 added.add(uid);
             }
         }
+        // Publish event specifically for adding participants
         publishEvent(MeetingEventType.ADDED_PARTICIPANT, m, null);
         return added;
     }

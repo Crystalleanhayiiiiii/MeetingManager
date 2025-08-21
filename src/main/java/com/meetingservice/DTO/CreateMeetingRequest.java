@@ -9,6 +9,7 @@ import com.meetingservice.enums.OnlinePlatform;
 public class CreateMeetingRequest {
     private String title;
     private String description;
+    private String notes;
     private Long organizerId;
     private MeetingType type;
     private LocalDateTime startTime;
@@ -36,6 +37,14 @@ public class CreateMeetingRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Long getOrganizerId() {
