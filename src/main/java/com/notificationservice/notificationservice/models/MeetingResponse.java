@@ -1,26 +1,56 @@
 package com.notificationservice.notificationservice.models;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MeetingResponse {
+
+    @JsonProperty("id")
     private Long id;
+
+    @JsonProperty("title")
     private String title;
+
+    @JsonProperty("description")
     private String description;
+
+    @JsonProperty("organizerId")
     private Long organizerId;
+
+    @JsonProperty("type")
     private String type;
+
+    @JsonProperty("status")
     private String status;
+
+    @JsonProperty("startTime")
     private String startTime;
+
+    @JsonProperty("endTime")
     private String endTime;
+
+    @JsonProperty("onlinePlatform")
     private String onlinePlatform;
+
+    @JsonProperty("onlineLink")
     private String onlineLink;
+
+    @JsonProperty("roomId")
     private Long roomId;
+
+    @JsonProperty("deviceIds")
     private List<Long> deviceIds;
-    private List<Long> participants;
+
+    @JsonProperty("participants")
+    private List<Participant> participants; // Sửa lại kiểu từ List<Long> thành List<Participant>
+
+    @JsonProperty("cancelReason")
     private String cancelReason;
 
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -117,11 +147,11 @@ public class MeetingResponse {
         this.deviceIds = deviceIds;
     }
 
-    public List<Long> getParticipants() {
+    public List<Participant> getParticipants() {
         return participants;
     }
 
-    public void setParticipants(List<Long> participants) {
+    public void setParticipants(List<Participant> participants) {
         this.participants = participants;
     }
 
@@ -133,4 +163,40 @@ public class MeetingResponse {
         this.cancelReason = cancelReason;
     }
 
+    // Lớp con Participant để ánh xạ dữ liệu participants
+    public static class Participant {
+        @JsonProperty("id")
+        private Long id;
+
+        @JsonProperty("userId")
+        private Long userId;
+
+        @JsonProperty("role")
+        private String role;
+
+        // Getters and Setters
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+    }
 }

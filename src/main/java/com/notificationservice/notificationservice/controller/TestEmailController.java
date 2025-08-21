@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 // import javax.mai.*;
 
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api/notifications")
 @Validated
 public class TestEmailController {
 
@@ -36,15 +36,48 @@ public class TestEmailController {
         this.meetingService = meetingService;
     }
 
+    /**
+     * API gửi email mời tham gia cuộc họp cho danh sách userId
+     * 
+     * @param meetingId: ID của cuộc họp
+     * @param userIds:   Danh sách userId nhận email mời
+     * @return ResponseEntity với thông báo gửi thành công hay thất bại
+     */
     @PostMapping("/{meetingId}/send-email")
-    public String sendEmail(@PathVariable Long meetingId, @RequestBody List<Long> userIds) {
+    public ResponseEntity<String> sendEmail(@PathVariable Long meetingId, @RequestBody List<Long> userIds) {
         try {
-            // Send email to participants
+            // Gửi email mời tham gia cuộc họp cho danh sách userId
             meetingService.sendEmailToParticipants(meetingId, userIds);
-            return "Email has been sent successfully!";
+            return ResponseEntity.ok("Email đã được gửi thành công!");
+        } catch (MessagingException e) {
+            // Xử lý khi có lỗi gửi email
+            return ResponseEntity.status(500).body("Gửi email thất bại: " + e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            return "Failed to send email: " + e.getMessage();
+            return ResponseEntity.status(500).body("Đã xảy ra lỗi: " + e.getMessage());
+        }
+    }
+
+    /**
+     * API gửi email thông báo nhiệm vụ cho người được giao nhiệm vụ
+     *
+     * @param meetingId: ID của cuộc họp
+     * @param taskId:    ID của nhiệm vụ
+     * @param userId:    ID của người được giao nhiệm vụ
+     * @return ResponseEntity với thông báo gửi thành công hay thất bại
+     */
+    @PostMapping("/{meetingId}/task/{taskId}/send-email/{userId}")
+    public ResponseEntity<String> sendTaskEmail(@PathVariable Long meetingId,
+            @PathVariable Long taskId,
+            @PathVariable Long userId) {
+        try {
+            // Gửi email thông báo nhiệm vụ cho người nhận
+            meetingService.sendTaskEmailToAssignee(meetingId, taskId, userId);
+            return ResponseEntity.ok("Email thông báo nhiệm vụ đã được gửi thành công!");
+        } catch (MessagingException e) {
+            // Xử lý khi có lỗi gửi email
+            return ResponseEntity.status(500).body("Gửi email thất bại: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Đã xảy ra lỗi: " + e.getMessage());
         }
     }
 
@@ -118,14 +151,16 @@ public class TestEmailController {
         return out.stream().distinct().collect(Collectors.toList());
     }
 
-    @GetMapping("/invite/dummy")
-    public String inviteDummy(@RequestParam String emails,
-            @RequestParam(defaultValue = "true") boolean online) throws MessagingException {
-        var list = Arrays.stream(emails.split(","))
-                .map(String::trim).filter(s -> !s.isEmpty())
-                .distinct().collect(Collectors.toList());
+    // @GetMapping("/invite/dummy")
+    // public String inviteDummy(@RequestParam String emails,
+    // @RequestParam(defaultValue = "true") boolean online) throws
+    // MessagingException {
+    // var list = Arrays.stream(emails.split(","))
+    // .map(String::trim).filter(s -> !s.isEmpty())
+    // .distinct().collect(Collectors.toList());
 
-        meetingService.sendEmailToParticipantsDummy(list, online);
-        return "OK: sent dummy invites (" + (online ? "ONLINE" : "OFFLINE") + ") to " + list;
-    }
+    // meetingService.sendEmailToParticipantsDummy(list, online);
+    // return "OK: sent dummy invites (" + (online ? "ONLINE" : "OFFLINE") + ") to "
+    // + list;
+    // }
 }

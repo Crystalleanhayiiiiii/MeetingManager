@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.meetingservice.services.UserDetailResponse;
 import com.notificationservice.notificationservice.models.MeetingResponse;
 import com.notificationservice.notificationservice.models.Room;
 import com.notificationservice.notificationservice.models.Task;
@@ -84,18 +85,36 @@ public class MeetingService {
     /* ======================== Data Fetching ======================== */
 
     private MeetingResponse getMeetingDetailsById(Long meetingId) {
-        String url = "http://172.16.1.248:8083/api/meetings/" + meetingId;
+        String url = "http://192.168.1.164:8083/api/meetings/" + meetingId;
         return restTemplate.getForObject(url, MeetingResponse.class);
     }
+    // private MeetingResponse getMeetingDetailsById(Long meetingId) {
+    // String url = "http://192.168.1.164:8083/api/meetings/" + meetingId;
+    // try {
+    // // Gọi API và ánh xạ dữ liệu JSON vào đối tượng MeetingResponse
+    // MeetingResponse meeting = restTemplate.getForObject(url,
+    // MeetingResponse.class);
+
+    // if (meeting == null) {
+    // throw new Exception("Không nhận được dữ liệu cuộc họp từ API.");
+    // }
+
+    // return meeting;
+    // } catch (Exception e) {
+    // // Log lỗi và trả về null hoặc thông báo lỗi
+    // System.err.println("Error fetching meeting details: " + e.getMessage());
+    // return null;
+    // }
+    // }
 
     private Task getTaskDetailsById(Long taskId) {
         // SỬA endpoint đúng về /api/tasks/{id}
-        String url = "http://172.16.1.248:8083/tasks/" + taskId;
+        String url = "http://192.168.1.164:8083/tasks/" + taskId;
         return restTemplate.getForObject(url, Task.class);
     }
 
     private Room getRoomDetailsById(Long roomId) {
-        String url = "http://172.16.1.248:8083/rooms/" + roomId;
+        String url = "http://192.168.1.164:8083/rooms/" + roomId;
         return restTemplate.getForObject(url, Room.class);
     }
 
@@ -109,7 +128,7 @@ public class MeetingService {
     private String getUserEmailById(Long userId) {
         if (userId == null)
             return null;
-        String url = "http://172.16.1.248:8083/users/userDetail/" + userId;
+        String url = "http://192.168.1.164:8083/users/userDetail/" + userId;
         UserDetailResponse response = restTemplate.getForObject(url, UserDetailResponse.class);
         return (response != null) ? response.getEmail() : null;
     }
@@ -166,12 +185,10 @@ public class MeetingService {
 
         html.append("<p style=\"margin-top:24px\">Trân trọng,<br/>Ban tổ chức</p>")
                 .append("</td></tr>")
-
                 // Footer
                 .append("<tr><td style=\"background:#0f172a;color:#94a3b8;padding:12px 24px;font-size:12px\">")
                 .append("Email tự động – vui lòng không trả lời trực tiếp.")
                 .append("</td></tr>")
-
                 .append("</table></td></tr></table>");
 
         return html.toString();
@@ -379,41 +396,43 @@ public class MeetingService {
     }
 
     // GỬI THỬ VỚI DỮ LIỆU CỨNG (không gọi service khác)
-    public void sendEmailToParticipantsDummy(List<String> emails, boolean online) throws MessagingException {
-        // --- Mock meeting ---
-        MeetingResponse m = new MeetingResponse();
-        m.setId(74L);
-        m.setTitle(online ? "Demo họp ONLINE" : "Demo họp OFFLINE");
-        m.setDescription("Email thử nghiệm từ notification-service (dữ liệu cứng).");
-        m.setStartTime("20/08/2025 09:00");
-        m.setEndTime("20/08/2025 10:00");
+    // public void sendEmailToParticipantsDummy(List<String> emails, boolean online)
+    // throws MessagingException {
+    // // --- Mock meeting ---
+    // MeetingResponse m = new MeetingResponse();
+    // m.setId(74L);
+    // m.setTitle(online ? "Demo họp ONLINE" : "Demo họp OFFLINE");
+    // m.setDescription("Email thử nghiệm từ notification-service (dữ liệu cứng).");
+    // m.setStartTime("20/08/2025 09:00");
+    // m.setEndTime("20/08/2025 10:00");
 
-        Room r = null;
-        if (online) {
-            m.setOnlinePlatform("Google Meet");
-            m.setOnlineLink("https://meet.google.com/abc-defg-hij");
-            m.setRoomId(null);
-        } else {
-            m.setOnlinePlatform(null);
-            m.setOnlineLink(null);
-            m.setRoomId(1L); // chỉ để hiển thị minh họa
+    // Room r = null;
+    // if (online) {
+    // m.setOnlinePlatform("Google Meet");
+    // m.setOnlineLink("https://meet.google.com/abc-defg-hij");
+    // m.setRoomId(null);
+    // } else {
+    // m.setOnlinePlatform(null);
+    // m.setOnlineLink(null);
+    // m.setRoomId(1L); // chỉ để hiển thị minh họa
 
-            r = new Room();
-            // Đổi các setter này theo model Room thực tế của bạn
-            r.setRoomName("Phòng A1");
-            r.setFloor(5);
-            r.setCapacity(2);
-            // r.setAddress("1200 Bay Street, Toronto, ON");
-        }
+    // r = new Room();
+    // // Đổi các setter này theo model Room thực tế của bạn
+    // r.setRoomName("Phòng A1");
+    // r.setFloor(5);
+    // r.setCapacity(2);
+    // // r.setAddress("1200 Bay Street, Toronto, ON");
+    // }
 
-        String subject = "[INVITE] " + safe(m.getTitle()) + " – " + shortTimeRange(m);
-        String body = generateMeetingEmailBody(m, r);
+    // String subject = "[INVITE] " + safe(m.getTitle()) + " – " +
+    // shortTimeRange(m);
+    // String body = generateMeetingEmailBody(m, r);
 
-        for (String email : emails) {
-            if (!isBlank(email)) {
-                emailService.sendMeetingNotification(email.trim(), subject, body, null);
-            }
-        }
-    }
+    // for (String email : emails) {
+    // if (!isBlank(email)) {
+    // emailService.sendMeetingNotification(email.trim(), subject, body, null);
+    // }
+    // }
+    // }
 
 }
