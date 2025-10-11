@@ -18,7 +18,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/users")
 public class AuthController {
-	private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private UserAccountRepository userAccountRepository;
@@ -26,29 +26,28 @@ public class AuthController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-    @PostMapping("/api/auth/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-    	logger.info("Login attempt with username: {}", request.getUsername());
+        logger.info("Login attempt with username: {}", request.getUsername());
         UserAccount user = userAccountRepository.findByUsername(request.getUsername());
-        
+
         if (user == null || !user.getPassword().equals(request.getPassword())) {
-        	logger.warn("Failed login attempt for username: {}", request.getUsername());
+            logger.warn("Failed login attempt for username: {}", request.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai tài khoản hoặc mật khẩu");
         }
 
         Users userInfo = user.getUser(); // Lấy thông tin người dùng từ bảng Users
-        
+
         logger.info("Successfully logged in, userId: {}, role: {}", userInfo.getUserId(), user.getRole().name());
         String token = jwtTokenUtil.generateToken(
-            user.getUsername(),
-            userInfo.getUserId(),
-            userInfo.getFirstName(),
-            userInfo.getLastName(),
-            userInfo.getEmail(),
-            user.getRole()
-        );
+                user.getUsername(),
+                userInfo.getUserId(),
+                userInfo.getFirstName(),
+                userInfo.getLastName(),
+                userInfo.getEmail(),
+                user.getRole());
         logger.info("Generated token for username: {}", user.getUsername());
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("msg", "Đăng nhập thành công");
         response.put("token", token);
