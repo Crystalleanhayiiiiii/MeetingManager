@@ -1,22 +1,21 @@
 package com.meetingservice.DTO;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.List;
+
+import com.meetingservice.enums.MeetingStatus;
 
 public class MeetingDTO {
     private Long id;
-    private String title;
+    private String name;
     private String description;
+    private MeetingStatus status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private Long meetingTypeId;
-    private String meetingTypeName;
-    private String status;
-    private Long organizerId;
-    private Set<String> participantIds;
-    private Map<String, Object> details = new HashMap<>();
+    private Long roomId;
+    private String cancelReason;
+    private List<MeetingParticipantDTO> participants;
 
     public Long getId() {
         return id;
@@ -26,12 +25,12 @@ public class MeetingDTO {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -40,6 +39,14 @@ public class MeetingDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public MeetingStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MeetingStatus status) {
+        this.status = status;
     }
 
     public LocalDateTime getStartTime() {
@@ -58,52 +65,41 @@ public class MeetingDTO {
         this.endTime = endTime;
     }
 
-    public Long getMeetingTypeId() {
-        return meetingTypeId;
+    public Long getRoomId() {
+        return roomId;
     }
 
-    public void setMeetingTypeId(Long meetingTypeId) {
-        this.meetingTypeId = meetingTypeId;
+    public void setRoomId(Long roomId) {
+        this.roomId = roomId;
     }
 
-    public String getMeetingTypeName() {
-        return meetingTypeName;
+    public String getCancelReason() {
+        return cancelReason;
     }
 
-    public void setMeetingTypeName(String meetingTypeName) {
-        this.meetingTypeName = meetingTypeName;
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
     }
 
-    public String getStatus() {
-        return status;
+    public List<MeetingParticipantDTO> getParticipants() {
+        return participants;
     }
 
-    public void setStatus(String status) {
+    public void setParticipants(List<MeetingParticipantDTO> participants) {
+        this.participants = participants;
+    }
+
+    public MeetingDTO(Long id, String name, String description, MeetingStatus status, LocalDateTime startTime,
+            LocalDateTime endTime, Long roomId, String cancelReason, List<MeetingParticipantDTO> participants) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
         this.status = status;
-    }
-
-    public Long getOrganizerId() {
-        return organizerId;
-    }
-
-    public void setOrganizerId(Long organizerId) {
-        this.organizerId = organizerId;
-    }
-
-    public Set<String> getParticipantIds() {
-        return participantIds;
-    }
-
-    public void setParticipantIds(Set<String> participantIds) {
-        this.participantIds = participantIds;
-    }
-
-    public Map<String, Object> getDetails() {
-        return details;
-    }
-
-    public void setDetails(Map<String, Object> details) {
-        this.details = details;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.roomId = roomId;
+        this.cancelReason = cancelReason;
+        this.participants = participants;
     }
 
     public MeetingDTO() {

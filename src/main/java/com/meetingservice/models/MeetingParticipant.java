@@ -2,7 +2,7 @@ package com.meetingservice.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.meetingservice.enums.ParticipantRole;
-
+import com.meetingservice.enums.ParticipantStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,25 +18,25 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "meeting_participants")
 public class MeetingParticipant {
+
+    // id/useid, role,meetingid, status=Pending
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long userId;
 
-    @Column(nullable = true, columnDefinition = "varchar(20) default 'ATTENDEE'")
+    @Column(nullable = true, columnDefinition = "varchar(20) default 'TV'")
     @Enumerated(EnumType.STRING)
-    private ParticipantRole role; // ORGANIZER / ATTENDEE
+    private ParticipantRole role; // TV: Thành viên/ TK: Thư ký/ CT: Chủ trì
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "meeting_id")
     @JsonIgnore
     private Meeting meeting;
 
-    public static Object builder() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'builder'");
-    }
+    @Enumerated(EnumType.STRING)
+    private ParticipantStatus status = ParticipantStatus.Pending;
 
     public Long getId() {
         return id;
@@ -68,6 +68,14 @@ public class MeetingParticipant {
 
     public void setMeeting(Meeting meeting) {
         this.meeting = meeting;
+    }
+
+    public ParticipantStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ParticipantStatus status) {
+        this.status = status;
     }
 
 }

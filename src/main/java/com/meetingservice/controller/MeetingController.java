@@ -1,71 +1,20 @@
 package com.meetingservice.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
 
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
+import java.util.List;
+
 import org.springframework.web.bind.annotation.*;
 
-import com.meetingservice.DTO.AddParticipantsRequest;
-import com.meetingservice.DTO.CancelMeetingRequest;
-import com.meetingservice.DTO.CreateMeetingRequest;
-import com.meetingservice.DTO.UpdateMeetingRequest;
+import com.meetingservice.enums.MeetingStatus;
+import com.meetingservice.enums.ParticipantStatus;
 import com.meetingservice.models.Meeting;
-
+import com.meetingservice.models.MeetingParticipant;
 import com.meetingservice.services.*;
 
 @RestController
-@RequestMapping("/api/meetings")
+@RequestMapping("/meetings")
 public class MeetingController {
-
-    // @Autowired
-    // private MeetingRepository meetingRepository;
-
-    // private final KafkaProducerService kafkaProducerService = null;
-
-    // @GetMapping("/send1")
-    // public String sendMeetingsToKafka() {
-    // Iterable<Meeting> meetings = meetingRepository.findAll();
-    // meetings.forEach(meeting -> {
-    // String message = "Meeting: " + meeting.getTitle() + " at " +
-    // meeting.getStartTime();
-    // kafkaProducerService.sendMessage(message);
-    // });
-    // return "Meetings sent to Kafka!";
-    // }
-
-    // private final MeetingService meetingService;
-    // @Autowired
-    // private final MeetingProducerService meetingProducerService;
-
-    // public MeetingController(MeetingService meetingService,
-    // MeetingProducerService meetingProducerService) {
-    // this.meetingService = meetingService;
-    // this.meetingProducerService = meetingProducerService;
-    // }
-
-    // Endpoint to retrieve meeting by ID and send to Kafka
-    // @GetMapping("/sendMeetingById")
-    // public String sendMeetingById(@RequestParam Long id) {
-    // // Retrieve the meeting from the database
-    // Meeting meeting = meetingService.getMeetingById(id);
-    // if (meeting == null) {
-    // return "Meeting not found with id: " + id;
-    // }
-
-    // // Send the meeting to Kafka
-    // meetingProducerService.sendMeeting("success", meeting);
-    // return "Meeting sent to Kafka successfully: " + meeting.getTitle();
-    // }
-
-    // // Đẩy meeting lên Kafka để test Consumer
-    // @PostMapping("/sendtest")
-    // public String sendMeeting(@RequestBody Meeting meeting) {
-    // meetingProducerService.sendMeeting(null, meeting);
-    // return "Meeting sent to Kafka: " + meeting.getTitle();
-    // }
 
     private final MeetingService meetingService;
 
@@ -73,101 +22,69 @@ public class MeetingController {
         this.meetingService = meetingService;
     }
 
-    // @PostMapping
-    // public ResponseEntity<Meeting> create(@RequestBody CreateMeetingRequest req)
-    // {
-    // return ResponseEntity.ok(meetingService.create(req));
-    // }
-    @PostMapping("/createMeeting")
-    public ResponseEntity<Meeting> create(@RequestBody CreateMeetingRequest req) {
-        return ResponseEntity.ok(meetingService.create(req));
+    // === MEETING CRUD ===
+    @PostMapping
+    public Meeting createMeeting(@RequestBody Meeting meeting) {
+        return meetingService.createMeeting(meeting);
     }
 
-    // @PutMapping("/{id}")
-    // public ResponseEntity<Meeting> update(@PathVariable Long id,
-    // @RequestBody UpdateMeetingRequest req) {
-    // return ResponseEntity.ok(meetingService.update(id, req));
-    // }
     @PutMapping("/{id}")
-    public ResponseEntity<Meeting> update(@PathVariable Long id,
-            @RequestBody UpdateMeetingRequest req) {
-        return ResponseEntity.ok(meetingService.update(id, req));
+    public Meeting updateMeeting(@PathVariable Long id, @RequestBody Meeting meeting) {
+        return meetingService.updateMeeting(id, meeting);
+    }
+
+    @PutMapping("/{id}/cancel")
+    public void cancelMeeting(@PathVariable Long id, @RequestParam String reason) {
+        meetingService.cancelMeeting(id, reason);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteMeeting(@PathVariable Long id) {
+        meetingService.deleteMeeting(id);
+    }
+
+    @GetMapping
+    public List<Meeting> getAllMeetings() {
+        return meetingService.getAllMeetings();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Meeting> detail(@PathVariable Long id) {
-        Meeting meeting = meetingService.getMeetingById(id);
-        if (meeting == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(meeting);
+    public Meeting getMeeting(@PathVariable Long id) {
+        return meetingService.getMeetingById(id).orElseThrow(() -> new RuntimeException("Meeting not found"));
     }
 
-    @PostMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable Long id,
-            @RequestBody(required = false) CancelMeetingRequest req) {
-        meetingService.cancel(id, req == null ? null : req.getReason());
-        return ResponseEntity.ok().build();
+    @GetMapping("/status/{status}")
+    public List<Meeting> getMeetingsByStatus(@PathVariable MeetingStatus status) {
+        return meetingService.getMeetingsByStatus(status);
     }
 
-    @PostMapping("/{id}/participants")
-    public ResponseEntity<Map<String, Object>> addParticipants(@PathVariable Long id,
-            @RequestParam Long organizerId,
-            @RequestBody AddParticipantsRequest req) {
-        List<Long> added = meetingService.addParticipants(id, organizerId, req.getUserIds());
-        Map<String, Object> body = new HashMap<>();
-        body.put("added", added);
-        body.put("count", added.size());
-        return ResponseEntity.ok(body);
+    @GetMapping("/between")
+    public List<Meeting> getMeetingsBetween(@RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end) {
+        return meetingService.getMeetingsBetween(start, end);
     }
 
-    @PostMapping("/{id}/approve")
-    public ResponseEntity<Void> approve(@PathVariable Long id,
-            @RequestParam Long adminId) {
-        meetingService.approve(id, adminId);
-        return ResponseEntity.ok().build();
-    }
-    // ===== NEW: Query meetings theo vai trò/trạng thái =====
-
-    // Upcoming: cả organizer + attendee
-    @GetMapping("/user/{userId}/upcoming")
-    public ResponseEntity<Page<Meeting>> upcomingAll(@PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(meetingService.getUpcomingAll(userId, page, size));
+    // === PARTICIPANT ===
+    @PostMapping("/{meetingId}/participants")
+    public MeetingParticipant addParticipant(@PathVariable Long meetingId,
+            @RequestBody MeetingParticipant participant) {
+        return meetingService.addParticipant(meetingId, participant);
     }
 
-    // Upcoming: chỉ organizer
-    @GetMapping("/user/{userId}/upcoming/organizer")
-    public ResponseEntity<Page<Meeting>> upcomingOrganizer(@PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(meetingService.getUpcomingOrganizer(userId, page, size));
+    @GetMapping("/{meetingId}/participants")
+    public List<MeetingParticipant> getParticipants(@PathVariable Long meetingId) {
+        return meetingService.getParticipants(meetingId);
     }
 
-    // Upcoming: chỉ attendee (khác organizer)
-    @GetMapping("/user/{userId}/upcoming/attendee")
-    public ResponseEntity<Page<Meeting>> upcomingAttendee(@PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(meetingService.getUpcomingAttendee(userId, page, size));
+    @DeleteMapping("/participants/{participantId}")
+    public void removeParticipant(@PathVariable Long participantId) {
+        meetingService.removeParticipant(participantId);
     }
 
-    // Completed (đã kết thúc): cả organizer + attendee
-    @GetMapping("/user/{userId}/completed")
-    public ResponseEntity<Page<Meeting>> completedAll(@PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(meetingService.getCompletedAll(userId, page, size));
-    }
-
-    @GetMapping("/user/{userId}/all")
-    public ResponseEntity<List<Meeting>> all(@PathVariable Long userId) {
-        return ResponseEntity.ok(meetingService.getAllByUser(userId));
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<List<Meeting>> getall() {
-        return ResponseEntity.ok(meetingService.getAll());
+    @PutMapping("/{meetingId}/participants/{userId}/status")
+    public void updateParticipantStatus(@PathVariable Long meetingId,
+            @PathVariable Long userId,
+            @RequestParam ParticipantStatus status) {
+        meetingService.updateParticipantStatus(meetingId, userId, status);
     }
 }

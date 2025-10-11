@@ -34,32 +34,17 @@ public class Meeting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
+    private String name;
     @Column(length = 2000)
     private String description;
-    @Column(length = 2000)
-    private String notes;
-    private Long organizerId;
-
     @Enumerated(EnumType.STRING)
-    private MeetingType type;
-
-    @Enumerated(EnumType.STRING)
-    private MeetingStatus status;
+    private MeetingStatus status = MeetingStatus.UPCOMING;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-
-    // ONLINE fields
-    @Enumerated(EnumType.STRING)
-    private OnlinePlatform onlinePlatform;
-    private String onlineLink;
-
     // OFFLINE fields
     private Long roomId;
 
-    // simple device ids (nếu sau này cần entity Device thì tách)
-    private Set<Long> deviceIds = new HashSet<>();
     // participants
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MeetingParticipant> participants = new ArrayList<>();
@@ -70,14 +55,6 @@ public class Meeting {
     public Meeting() {
     }
 
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
     public Long getId() {
         return id;
     }
@@ -86,36 +63,12 @@ public class Meeting {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Long getOrganizerId() {
-        return organizerId;
-    }
-
-    public void setOrganizerId(Long organizerId) {
-        this.organizerId = organizerId;
-    }
-
-    public MeetingType getType() {
-        return type;
-    }
-
-    public void setType(MeetingType type) {
-        this.type = type;
     }
 
     public MeetingStatus getStatus() {
@@ -142,22 +95,6 @@ public class Meeting {
         this.endTime = endTime;
     }
 
-    public OnlinePlatform getOnlinePlatform() {
-        return onlinePlatform;
-    }
-
-    public void setOnlinePlatform(OnlinePlatform onlinePlatform) {
-        this.onlinePlatform = onlinePlatform;
-    }
-
-    public String getOnlineLink() {
-        return onlineLink;
-    }
-
-    public void setOnlineLink(String onlineLink) {
-        this.onlineLink = onlineLink;
-    }
-
     public Long getRoomId() {
         return roomId;
     }
@@ -182,21 +119,11 @@ public class Meeting {
         this.cancelReason = cancelReason;
     }
 
-    public Set<Long> getDeviceIds() {
-        return deviceIds;
+    public String getName() {
+        return name;
     }
 
-    public void setDeviceIds(Set<Long> deviceIds) {
-        this.deviceIds = (deviceIds == null) ? new HashSet<>() : new HashSet<>(deviceIds);
-    }
-
-    // Patch an toàn: nếu ai đó gọi setDeviceId(single) thì ta thêm vào set thay vì
-    // throw
-    public void setDeviceId(Long deviceId) {
-        if (this.deviceIds == null)
-            this.deviceIds = new HashSet<>();
-        if (deviceId != null)
-            this.deviceIds.add(deviceId);
-
+    public void setName(String name) {
+        this.name = name;
     }
 }
